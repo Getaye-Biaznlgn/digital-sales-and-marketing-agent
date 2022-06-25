@@ -1,0 +1,296 @@
+<template>
+<div class="p-3">
+   <div class="fw-bold fs-5">Product Details</div>
+  <div>
+    In the product section, you will review and manage 
+    all products with their details. You can view and edit 
+    many information such as product name, description, stock, price and more.
+  </div>
+  <ul class="nav mt-4">
+  <li class="nav-item-tab">
+  <a  class="nav-link text-black" role="button" @click="fetchProducts('all')">
+        All Products
+   </a>  </li>
+  <li class="nav-item " >
+  <a  class="nav-link text-black" role="button" @click="fetchProducts('outstock')">
+        Out Stock
+   </a>  </li>
+  <li class="nav-item">
+   <a  class="nav-link text-black" role="button" @click="fetchProducts('instock')">
+        In stock
+   </a>  
+   </li>
+
+    <li class="nav-item">
+   <a  class="nav-link text-black" role="button" @click="fetchProducts('active')">
+        Active
+   </a>  
+   </li>
+
+    <li class="nav-item">
+   <a  class="nav-link text-black " role="button" @click="fetchProducts('inactive')">
+        In Active
+   </a>  
+   </li>
+
+    <li class="nav-item">
+   <a  class="nav-link text-black " role="button" @click="fetchProducts('pending')">
+         Pending
+   </a>  
+   </li>
+</ul>
+  
+  
+<hr class="mt-0 "/>
+<div class="d-flex justify-content-between p-2 selection-bar">
+   <!-- <div class="d-flex  border rounded">
+      <input type="text" v-model="searchQuery" class="form-control search-input" placeholder="Search" aria-label="search" aria-describedby="basic-addon2"/>
+        <span role="button"  class="input-group-text search rounded-0" id="basic-addon2" @click="searchProduct()">
+            <i class="fas fa-search"></i>
+        </span>           
+   </div> -->
+   <div class="position-relative w-50  me-2">
+        <input
+          type="text"
+          v-model="searchQuery"
+          class="form-control rounded-pill pe-5"
+          placeholder="Search by name"
+          aria-label="Recipient's username"
+          aria-describedby="basic-add"
+        />
+        <span role="button" class="position-absolute  end-0 top-0 p-2 me-2"
+          ><i class="fas fa-search"></i
+        ></span>
+      </div>
+   <div class="d-flex">
+      <div class="pe-2">
+        <select
+          class="form-select"
+          aria-label="selectFilte"
+        >
+          <option value=" ">Sort</option>
+          <option>
+            Lowest to Higest Price
+          </option>
+        </select>
+      </div>
+      <div>
+        <select
+          class="form-select"
+          aria-label="selectFilterRegion"
+          v-model.number="filteredCat"
+          @change="fetchProductByCategory()"
+        >
+          <option value="">Filter</option>
+          <option v-for="cat in categories" :key="cat.id" :value="cat.id" >
+             {{cat.title}} 
+          </option>
+        </select>
+      </div>
+
+       <!-- <div>
+        <button class="btn bg-white border ms-2">
+          <span class=""> <i class="fa-solid fa-file-export"></i> </span>  
+          Export
+        </button>
+
+        
+      </div> -->
+     </div>
+    </div>
+  <!-- Table -->
+    <table class="mt-2">
+      <tr>
+        <th>No</th>
+        <th>Model</th>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+         <th>Stock</th>
+        <th>Status</th>
+        <th><span class="sr-only">Action</span></th>
+      </tr>
+      <tr
+        v-for="(product,index) in products"
+        :key="product.id"
+      >
+        <td>{{index+1}}</td>
+        <td style="white-space:nowrap">{{product.model}}</td>
+        <td>
+          <img
+            :src="product.images?.path"
+            width="100"
+            height="100"
+            alt="product image"
+          />
+        </td>
+        <td>{{product.name}}</td>
+        <td>{{product.category?.title}}</td>
+        <td>{{product.price}}</td>
+        <td>{{product.qty}}</td>
+        <td style="white-space:nowrap">{{product.qty>0 ? 'In Stock' : 'Out Stock'}}</td>
+        <td
+        >
+          <span class="me-2" @click="$router.push({name:'ProductDetail',params:{id:product.id}})" role="button"
+            ><i class="far fa-eye"></i
+          ></span>
+        
+        </td>
+      </tr>
+    </table>
+</div>
+  
+    <!-- <add-product-modal :isAddModalVisible="isAddModalVisible" @closeAddModal="closeAddModal"/> -->
+</template>
+
+<script>
+
+import apiClient from '../resources/baseUrl'
+// import {useStore} from 'vuex'
+export default {
+  
+  data(){
+     return {
+          products:[],
+          categories:'',
+          filteredCat:'',
+          searchQuery:''
+     }
+  },
+ 
+  methods:{
+    async fetchProducts(query){
+     // alert(query)
+       try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.get(
+          '/api/shop_products'+"?filter="+query
+        );
+        if (response.status === 200) {
+           this.products=response.data.data
+           console.log("product="+this.products)
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
+   },
+
+   async fetchProductByCategory(){
+     // alert(query)
+       try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.get(
+          `/api/categories/${this.filteredCat}`
+        );
+        if (response.status === 200) {
+           this.products=response.data.data
+           console.log("product="+this.products)
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
+   },
+
+       async searchProduct(){
+       // alert(this.searchQuery)
+       try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.get(
+          `/api/search?search=${this.searchQuery}`
+        );
+        if (response.status === 200) {
+           this.products=response.data.data
+           console.log(this.products)
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
+   },
+       async fetchCategories(){
+       try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.get(
+          '/api/categories'
+        );
+        if (response.status === 200) {
+           this.categories=response.data
+           console.log("categories"+this.categories)
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
+   },
+
+    },
+
+    mounted(){
+     this.fetchProducts()
+     this.fetchCategories()
+
+    }
+    
+  }
+ 
+ 
+  
+
+
+</script>
+
+<style>
+  .search-input{
+    border-bottom-right-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+.selection-bar{
+  background-color: rgb(250, 250, 250);
+}
+  .input-group{
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+/* new design change start*/
+tr:last-child {
+  border-bottom: 2px solid #f1f1f1;
+}
+th {
+  text-align: left;
+  padding: 8px;
+}
+tr {
+  border-bottom: 2px solid #f1f1f1;
+}
+td {
+  text-align: left;
+  padding: 8px;
+  vertical-align: top;
+}
+.text-dark-blue {
+  color: #2f4587;
+}
+.btn-bg-primary {
+  background-color: #ff7e00;
+}
+.warining input,
+.warining textarea {
+  border: 1px red solid;
+}
+.warining span {
+  display: inline;
+  color: red;
+  font-size: 14px;
+}
+</style>

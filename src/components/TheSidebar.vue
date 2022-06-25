@@ -7,31 +7,39 @@
         routeName="TheDashboard"
         @click="setSelected('TheDashboard')"
         :isSelected="selectedRoute == 'TheDashboard'"
-      />
+      >
+      <i class="fas fa-tachometer-alt" ></i>
+      </TheSidebar>
       <TheSidebar
         label="My Shop"
         routeName="MyShop"
         @click="setSelected('MyShop')"
         :isSelected="selectedRoute == 'MyShop'"
-      />
+      >
+      <i class="fa-solid fa-store"></i>
+      </TheSidebar>
       <TheSidebar
         label="Order"
         routeName="TheOrder"
         @click="setSelected('TheOrder')"
         :isSelected="selectedRoute == 'TheOrder'"
-      />
+      >
+      <i class="fa-solid fa-cart-shopping"></i>
+      </TheSidebar>
       <TheSidebar
         label="Customer"
         routeName="TheCustomer"
         @click="setSelected('TheCustomer')"
         :isSelected="selectedRoute == 'TheCustomer'"
-      />
+      ><i class="fas fa-user-friends"></i></TheSidebar>
       <TheSidebar
         label="Queue Product"
         routeName="QueueProduct"
         @click="setSelected('QueueProduct')"
         :isSelected="selectedRoute == 'QueueProduct'"
-      />
+      >
+      <i class="fa fa-bell"></i>
+      </TheSidebar>
       <!-- <TheSidebar label="Sales" routeName="TheSales" /> -->
       <!-- <TheSidebar label="Report" routeName="TheReport"
          @click="setSelected('TheReport')"
@@ -42,7 +50,9 @@
         routeName="TheSetting"
         @click="setSelected('TheSetting')"
         :isSelected="selectedRoute == 'TheSetting'"
-      />
+      >
+       <i class="fa fa-gear"></i>
+      </TheSidebar>
 
       <!-- <TheSidebar
         label="Role"

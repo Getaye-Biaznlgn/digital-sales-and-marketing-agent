@@ -20,6 +20,7 @@
 
           <!-- the products should be active products -->
           <!-- Table -->
+          <div style="overflow-x:auto;">
           <table class="mt-2">
             <tr>
               <td></td>
@@ -60,10 +61,12 @@
             </tr>
           </table>
         </div>
+        </div>
       </div>
-      <div class="col-lg-4">
+      <div class="col-lg-4 ">
         <div class="bg-white rounded p-2">
           <div class="fs-5">Cart Items</div>
+           <div style="overflow-x:auto;">
           <table class="mt-2">
             <tr>
               <th>No</th>
@@ -107,6 +110,7 @@
               <td>{{totalPrice}}</td>
             </tr> -->
           </table>
+          </div>
           <div v-if="cart.length" class="d-flex justify-content-between">
               <span colspan="4">Total Qty</span>
               <span>{{ totalQty }}</span>
@@ -169,7 +173,8 @@ export default {
   },
   methods: {
     checkout(){
-      this.$emit('checkout',this.cart);
+      this.$emit('checkout',{cart:this.cart, totalPrice: this.totalPrice});
+  
     },
     updateCart(product) {
       // remove item

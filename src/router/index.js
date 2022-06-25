@@ -54,7 +54,7 @@ const routes = [
         component: () => import(/* webpackChunkName: "add-new-order" */ '../views/AddNewOrder.vue')
       },
       {
-        path: '/order-detail',
+        path: '/order-detail/:id',
         name: 'OrderDetail',
         component: () => import(/* webpackChunkName: "order detail" */ '../views/OrderDetail.vue')
       },

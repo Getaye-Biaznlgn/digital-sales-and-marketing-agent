@@ -115,7 +115,7 @@ export default {
     },
   },
   methods: {
-    async fetchCategories() {
+    async fetchOrderDetail() {
       try {
         this.$store.commit("setIsLoading", true);
         const response = await apiClient.get(
@@ -132,7 +132,7 @@ export default {
     },
   },
   created() {
-    this.fetchCategories();
+    this.fetchOrderDetail();
   },
 };
 </script>

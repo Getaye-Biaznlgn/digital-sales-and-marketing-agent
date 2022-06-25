@@ -41,8 +41,8 @@
               </td>
               <td>{{ customer.phone_number }}</td>
               <td>
-                {{ customer.user_region ?? "" + "-"
-                }}{{ customer.user_woreda ?? "" }}
+                {{ customer.user_region ?? "" }} -
+                {{ customer.user_woreda ?? "" }}
               </td>
             </tr>
           </table>
@@ -88,7 +88,7 @@
               id="paymentMethod"
               class="form-select"
             >
-              <option v-for="method in paymentMethods" :key="method.id">
+              <option v-for="method in paymentMethods" :value="method.id" :key="method.id">
                 {{ method.payment_name }}
               </option>
             </select>
@@ -306,7 +306,8 @@ export default {
       this.isLoading = true;
       try {
         const response = await apiClient.post("/api/orders", {
-          items: [...this.cart],
+          items: [...this.cart.cart],
+          total_price:this.cart.totalPrice,
           user_id: this.selectedCustomer?.customer_id,
           id: this.user.id,
           pickup_date: new Date(),

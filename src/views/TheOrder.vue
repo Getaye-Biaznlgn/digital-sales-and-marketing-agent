@@ -4,13 +4,66 @@
     <div>
       In the order section, you will review and manage all solar product orders.
     </div>
-    <button
-      @click="addOrderPage"
-      class="btn ms-auto d-flex justify-self-end btn-bg-primary text-light"
-    >
-      Add New Order
-    </button>
-    <hr />
+    <div class="d-flex justify-content-between">
+      <ul class="nav mt-4">
+        <li class="nav-item-tab">
+          <a
+            class="nav-link text-black"
+            :class="{
+              'border-bottom border-dark border-2': filterString == 'all',
+            }"
+            role="button"
+            @click="fetchOrders('all')"
+          >
+            All orders
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link text-black"
+            role="button"
+            :class="{
+              'border-bottom border-dark border-2': filterString == 'completed',
+            }"
+            @click="fetchOrders('completed')"
+          >
+            Completed
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link text-black"
+            role="button"
+            :class="{
+              'border-bottom border-dark border-2': filterString == 'pending',
+            }"
+            @click="fetchOrders('pending')"
+          >
+            Pending
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a
+            class="nav-link text-black"
+            role="button"
+            :class="{
+              'border-bottom border-dark border-2': filterString == 'canceled',
+            }"
+            @click="fetchOrders('canceled')"
+          >
+            Canceled
+          </a>
+        </li>
+      </ul>
+      <div>
+        <button @click="addOrderPage" class="btn btn-bg-primary text-light">
+          Add New Order
+        </button>
+      </div>
+    </div>
+
+    <hr class="my-0" />
     <div class="d-flex p-2 selection-bar justify-content-between">
       <div class="position-relative w-50 me-2">
         <input
@@ -56,10 +109,18 @@
         <td>{{ index + 1 }}</td>
         <td>{{ order.order_ref }}</td>
         <td>{{ order.first_name + " " + order.last_name }}</td>
-        <td>{{ (new Date(order.order_date)).toString().split(' ').slice(0,4).join(' ')  }}</td>
+        <td>
+          {{
+            new Date(order.order_date)
+              .toString()
+              .split(" ")
+              .slice(0, 4)
+              .join(" ")
+          }}
+        </td>
         <td>{{ order.shop_name }}</td>
         <td>{{ order.order_status }}</td>
-        <td>{{order.payment_type}}</td>
+        <td>{{ order.payment_type }}</td>
         <td>
           <!-- <span class="me-2" role="button"
             ><i class="far fa-eye"></i
@@ -68,20 +129,41 @@
             ><i class="fas fa-trash"></i
           ></span> -->
           <div class="dropdown">
-  <a class="dropdown-toggl text-dark" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">   
-    <i class="fa-solid fa-ellipsis-vertical"></i>
-  </a>
+            <a
+              class="dropdown-toggl text-dark"
+              href="#"
+              role="button"
+              id="dropdownMenuLink"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </a>
 
-  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-    <li><a class="dropdown-item" @click="showDetail(order.id)"  role="button">View Details</a></li>
-    <li><a class="dropdown-item" @click="showChangeStatusModal(order)" role="button">Change Status</a></li>
-  </ul>
-</div>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+              <li>
+                <a
+                  class="dropdown-item"
+                  @click="showDetail(order.id)"
+                  role="button"
+                  >View Details</a
+                >
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  @click="showChangeStatusModal(order)"
+                  role="button"
+                  >Change Status</a
+                >
+              </li>
+            </ul>
+          </div>
         </td>
       </tr>
     </table>
   </div>
-   <!-- pagination -->
+  <!-- pagination -->
   <div class="d-flex justify-content-end mb-3 me-2">
     <div class="me-3">
       <select
@@ -97,15 +179,15 @@
         <option value="100">100</option>
       </select>
     </div>
-      <paginate
-    :page-count="totalPage"
-    :click-handler="fetchByPageNo"
-    :prev-text="'Prev'"
-    :next-text="'Next'"
-    :container-class="'d-flex nav page-item'"
-  >
-  </paginate>
-    </div>
+    <paginate
+      :page-count="totalPage"
+      :click-handler="fetchByPageNo"
+      :prev-text="'Prev'"
+      :next-text="'Next'"
+      :container-class="'d-flex nav page-item'"
+    >
+    </paginate>
+  </div>
   <!-- add orders -->
   <base-modal
     :modalState="isAddModalVisible"
@@ -179,11 +261,30 @@
     @submit="changeStatus"
   >
     <div>
-       <div>Choose order status</div>
-      <select id="changeStatus" v-model="orderForChangeStatus.order_status" class="form-control">
-        <option :disabled="orderForChangeStatus.order_status=='pending'" value="pending">Pending</option>
-        <option value="completed" :disabled="orderForChangeStatus.order_status=='completed'" >Completed</option>
-        <option value="canceled" :disabled="orderForChangeStatus.order_status=='canceled'" >Canceled</option>
+      <div>Choose order status</div>
+      <select
+        id="changeStatus"
+        v-model="orderForChangeStatus.order_status"
+        class="form-control"
+      >
+        <option
+          :disabled="orderForChangeStatus.order_status == 'pending'"
+          value="pending"
+        >
+          Pending
+        </option>
+        <option
+          value="completed"
+          :disabled="orderForChangeStatus.order_status == 'completed'"
+        >
+          Completed
+        </option>
+        <option
+          value="canceled"
+          :disabled="orderForChangeStatus.order_status == 'canceled'"
+        >
+          Canceled
+        </option>
       </select>
     </div>
   </base-modal>
@@ -202,8 +303,8 @@ import Paginate from "vuejs-paginate-next";
 import useValidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 export default {
-  components:{
-    Paginate
+  components: {
+    Paginate,
   },
   data() {
     return {
@@ -211,9 +312,9 @@ export default {
       isAddModalVisible: false,
       isChangeStatusModalVisible: false,
       // orderForDelete: {},
-      orderForChangeStatus:{},
+      orderForChangeStatus: {},
       alertMessage: "",
-
+    
       isLoading: false,
       orders: [],
       order: {
@@ -226,7 +327,8 @@ export default {
       // to use add modal as edit depend on the condition and #forUpdate to
       //chage the action which should be performed
       forUpdate: false,
-       //paginate
+      filterString:'all',
+      //paginate
       perPage: 10,
       pageNo: 1,
       totalPage: "",
@@ -248,8 +350,8 @@ export default {
     closeChangeStatusModal() {
       this.isChangeStatusModalVisible = false;
     },
-    showDetail(id){
-       this.$router.push({name:'OrderDetail', params:{id:id}})
+    showDetail(id) {
+      this.$router.push({ name: "OrderDetail", params: { id: id } });
     },
     // showEditModal({ ...order }) {
     //   this.forUpdate = true;
@@ -263,7 +365,7 @@ export default {
     },
     addOrderPage() {
       // this.isAddModalVisible = true;
-      this.$router.push({name:'AddNewOrder'})
+      this.$router.push({ name: "AddNewOrder" });
     },
     // async updateOrder() {
     //   this.v$.$validate();
@@ -292,23 +394,29 @@ export default {
     //     }
     //   }
     // },
-    async changeStatus(){
+    async changeStatus() {
       this.isLoading = true;
-        try {
-          const response = await apiClient.post("/api/set_order_status/"+this.orderForChangeStatus.id,{status:this.orderForChangeStatus.order_status});
-          if (response.status === 200) {
-            // this.orders.push(response.data);
-              let index= this.orders.findIndex((order)=>order.id===this.orderForChangeStatus.id)
-             this.orders[index].order_status=this.orderForChangeStatus.order_status
-         } else throw "";
-        } catch (e) {
-          this.isAlertVisible = true;
-          this.alertMessage = "Faild to change order status";
-          this.dismissAlert();
-        } finally {
-          this.isLoading = false;
-          this.closeChangeStatusModal();
-        }
+      try {
+        const response = await apiClient.post(
+          "/api/set_order_status/" + this.orderForChangeStatus.id,
+          { status: this.orderForChangeStatus.order_status }
+        );
+        if (response.status === 200) {
+          // this.orders.push(response.data);
+          let index = this.orders.findIndex(
+            (order) => order.id === this.orderForChangeStatus.id
+          );
+          this.orders[index].order_status =
+            this.orderForChangeStatus.order_status;
+        } else throw "";
+      } catch (e) {
+        this.isAlertVisible = true;
+        this.alertMessage = "Faild to change order status";
+        this.dismissAlert();
+      } finally {
+        this.isLoading = false;
+        this.closeChangeStatusModal();
+      }
     },
     async addNewOrder() {
       // if (this.forUpdate) {
@@ -355,15 +463,16 @@ export default {
     //     this.closeDeleteModal();
     //   }
     // },
-    async fetchOrders() {
+    async fetchOrders(filterQuery) {
       try {
         this.$store.commit("setIsLoading", true);
-        const response = await apiClient.get(`/api/orders`);
+        const response = await apiClient.get(`/api/orders?filter=${filterQuery}&&page=${this.pageNo}&&per_page=${this.perPage}`);
         if (response.status === 200) {
           this.orders = response.data.data;
           this.perPage = response.data.meta.per_page;
           this.pageNo = response.data.meta.current_page;
           this.totalPage = response.data.meta.last_page;
+          this.filterString=filterQuery
         }
       } catch (e) {
         //
@@ -371,7 +480,7 @@ export default {
         this.$store.commit("setIsLoading", false);
       }
     },
-     //paginations
+    //paginations
     fetchByPageNo(no) {
       this.pageNo = no;
       this.fetchOrders(this.filterString);
@@ -381,7 +490,7 @@ export default {
     },
   },
   created() {
-    this.fetchOrders();
+    this.fetchOrders('all');
   },
   beforeUnmount() {
     clearTimeout(this.timeout);

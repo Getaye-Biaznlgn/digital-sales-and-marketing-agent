@@ -61,16 +61,51 @@
         <td>{{ order.order_status }}</td>
         <td>{{order.payment_type}}</td>
         <td>
-          <span class="me-2" @click="showDetail(order.id)" role="button"
+          <!-- <span class="me-2" role="button"
             ><i class="far fa-eye"></i
-          ></span>
+          ></span> -->
           <!-- <span @click="showDeleteModal(order)" role="button"
             ><i class="fas fa-trash"></i
           ></span> -->
+          <div class="dropdown">
+  <a class="dropdown-toggl text-dark" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">   
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </a>
+
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+    <li><a class="dropdown-item" @click="showDetail(order.id)"  role="button">View Details</a></li>
+    <li><a class="dropdown-item" @click="showChangeStatusModal(order)" role="button">Change Status</a></li>
+  </ul>
+</div>
         </td>
       </tr>
     </table>
   </div>
+   <!-- pagination -->
+  <div class="d-flex justify-content-end mb-3 me-2">
+    <div class="me-3">
+      <select
+        @change="handlePerPage()"
+        v-model="perPage"
+        class="form-select"
+        aria-label="perPage"
+      >
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+      <paginate
+    :page-count="totalPage"
+    :click-handler="fetchByPageNo"
+    :prev-text="'Prev'"
+    :next-text="'Next'"
+    :container-class="'d-flex nav page-item'"
+  >
+  </paginate>
+    </div>
   <!-- add orders -->
   <base-modal
     :modalState="isAddModalVisible"
@@ -120,11 +155,11 @@
   </base-modal>
 
   <!-- delete base modal -->
-  <base-modal
+  <!-- <base-modal
     :modalState="isDeleteModalVisible"
     btnLabel="Delete"
     :isLoading="isLoading"
-    title="Delete Image"
+    title="Delete Order"
     @close="closeDeleteModal"
     @submit="deleteOrder"
   >
@@ -132,9 +167,28 @@
       Do u want to delete? <br />
       {{ orderForDelete?.pin }}
     </p>
+  </base-modal> -->
+
+  <!-- change status base modal -->
+  <base-modal
+    :modalState="isChangeStatusModalVisible"
+    btnLabel="Change"
+    :isLoading="isLoading"
+    title="Change Status"
+    @close="closeChangeStatusModal"
+    @submit="changeStatus"
+  >
+    <div>
+       <div>Choose order status</div>
+      <select id="changeStatus" v-model="orderForChangeStatus.order_status" class="form-control">
+        <option :disabled="orderForChangeStatus.order_status=='pending'" value="pending">Pending</option>
+        <option value="completed" :disabled="orderForChangeStatus.order_status=='completed'" >Completed</option>
+        <option value="canceled" :disabled="orderForChangeStatus.order_status=='canceled'" >Canceled</option>
+      </select>
+    </div>
   </base-modal>
 
-  <!--to show delete image is failed  -->
+  <!--to show delete  is failed  -->
   <the-alert
     :isVisible="isAlertVisible"
     :message="alertMessage"
@@ -144,15 +198,20 @@
 
 <script>
 import apiClient from "../resources/baseUrl";
+import Paginate from "vuejs-paginate-next";
 import useValidate from "@vuelidate/core";
 import { required, helpers } from "@vuelidate/validators";
 export default {
+  components:{
+    Paginate
+  },
   data() {
     return {
       v$: useValidate(),
       isAddModalVisible: false,
-      isDeleteModalVisible: false,
-      orderForDelete: {},
+      isChangeStatusModalVisible: false,
+      // orderForDelete: {},
+      orderForChangeStatus:{},
       alertMessage: "",
 
       isLoading: false,
@@ -167,6 +226,10 @@ export default {
       // to use add modal as edit depend on the condition and #forUpdate to
       //chage the action which should be performed
       forUpdate: false,
+       //paginate
+      perPage: 10,
+      pageNo: 1,
+      totalPage: "",
     };
   },
   methods: {
@@ -178,12 +241,12 @@ export default {
     resetFieldEmpity() {
       // (this.order.title = ""), (this.order.description = "");
     },
-    showDeleteModal({ ...order }) {
-      this.orderForDelete = order;
-      this.isDeleteModalVisible = true;
+    showChangeStatusModal({ ...order }) {
+      this.orderForChangeStatus = order;
+      this.isChangeStatusModalVisible = true;
     },
-    closeDeleteModal() {
-      this.isDeleteModalVisible = false;
+    closeChangeStatusModal() {
+      this.isChangeStatusModalVisible = false;
     },
     showDetail(id){
        this.$router.push({name:'OrderDetail', params:{id:id}})
@@ -229,6 +292,24 @@ export default {
     //     }
     //   }
     // },
+    async changeStatus(){
+      this.isLoading = true;
+        try {
+          const response = await apiClient.post("/api/set_order_status/"+this.orderForChangeStatus.id,{status:this.orderForChangeStatus.order_status});
+          if (response.status === 200) {
+            // this.orders.push(response.data);
+              let index= this.orders.findIndex((order)=>order.id===this.orderForChangeStatus.id)
+             this.orders[index].order_status=this.orderForChangeStatus.order_status
+         } else throw "";
+        } catch (e) {
+          this.isAlertVisible = true;
+          this.alertMessage = "Faild to change order status";
+          this.dismissAlert();
+        } finally {
+          this.isLoading = false;
+          this.closeChangeStatusModal();
+        }
+    },
     async addNewOrder() {
       // if (this.forUpdate) {
       //   this.updateOrder();
@@ -253,39 +334,50 @@ export default {
         }
       }
     },
-    async deleteOrder() {
-      this.isLoading = true;
-      try {
-        const response = await apiClient.delete(
-          `/api/orders/${this.orderForDelete.id}`
-        );
-        if (response.status === 200) {
-          const deletedIndex = this.orders.findIndex((order) => {
-            return order.id === this.orderForDelete.id;
-          });
-          this.orders.splice(deletedIndex, 1);
-        }
-      } catch (e) {
-        this.isAlertVisible = true;
-        this.alertMessage = "Faild to delete a new order";
-        this.dismissAlert();
-      } finally {
-        this.isLoading = false;
-        this.closeDeleteModal();
-      }
-    },
+    // async deleteOrder() {
+    //   this.isLoading = true;
+    //   try {
+    //     const response = await apiClient.delete(
+    //       `/api/orders/${this.orderForDelete.id}`
+    //     );
+    //     if (response.status === 200) {
+    //       const deletedIndex = this.orders.findIndex((order) => {
+    //         return order.id === this.orderForDelete.id;
+    //       });
+    //       this.orders.splice(deletedIndex, 1);
+    //     }
+    //   } catch (e) {
+    //     this.isAlertVisible = true;
+    //     this.alertMessage = "Faild to delete a new order";
+    //     this.dismissAlert();
+    //   } finally {
+    //     this.isLoading = false;
+    //     this.closeDeleteModal();
+    //   }
+    // },
     async fetchOrders() {
       try {
         this.$store.commit("setIsLoading", true);
         const response = await apiClient.get(`/api/orders`);
         if (response.status === 200) {
           this.orders = response.data.data;
+          this.perPage = response.data.meta.per_page;
+          this.pageNo = response.data.meta.current_page;
+          this.totalPage = response.data.meta.last_page;
         }
       } catch (e) {
         //
       } finally {
         this.$store.commit("setIsLoading", false);
       }
+    },
+     //paginations
+    fetchByPageNo(no) {
+      this.pageNo = no;
+      this.fetchOrders(this.filterString);
+    },
+    handlePerPage() {
+      this.fetchOrders(this.filterString);
     },
   },
   created() {

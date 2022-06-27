@@ -8,36 +8,36 @@
   </div>
   <ul class="nav mt-4">
   <li class="nav-item-tab">
-  <a  class="nav-link text-black" role="button" @click="fetchProducts('all')">
+  <a  class="nav-link text-black " :class="{'border-bottom border-dark border-2' :filterString=='all'}" role="button" @click="fetchProducts('all')">
         All Products
    </a>  </li>
   <li class="nav-item " >
-  <a  class="nav-link text-black" role="button" @click="fetchProducts('outstock')">
+  <a  class="nav-link text-black" role="button" :class="{'border-bottom border-dark border-2' :filterString=='outstock'}" @click="fetchProducts('outstock')">
         Out Stock
    </a>  </li>
   <li class="nav-item">
-   <a  class="nav-link text-black" role="button" @click="fetchProducts('instock')">
+   <a  class="nav-link text-black" role="button" :class="{'border-bottom border-dark border-2' :filterString=='instock'}" @click="fetchProducts('instock')">
         In stock
    </a>  
    </li>
 
     <li class="nav-item">
-   <a  class="nav-link text-black" role="button" @click="fetchProducts('active')">
+   <a  class="nav-link text-black" role="button" :class="{'border-bottom border-dark border-2' :filterString=='active'}"  @click="fetchProducts('active')">
         Active
    </a>  
    </li>
 
     <li class="nav-item">
-   <a  class="nav-link text-black " role="button" @click="fetchProducts('inactive')">
+   <a  class="nav-link text-black " role="button" :class="{'border-bottom border-dark border-2' :filterString=='inactive'}"  @click="fetchProducts('inactive')">
         In Active
    </a>  
    </li>
 
-    <li class="nav-item">
+    <!-- <li class="nav-item">
    <a  class="nav-link text-black " role="button" @click="fetchProducts('pending')">
          Pending
    </a>  
-   </li>
+   </li> -->
 </ul>
   
   
@@ -155,21 +155,21 @@ export default {
           products:[],
           categories:'',
           filteredCat:'',
-          searchQuery:''
+          searchQuery:'',
+          filterString:'all'
      }
   },
  
   methods:{
     async fetchProducts(query){
-     // alert(query)
        try {
         this.$store.commit("setIsLoading", true);
         const response = await apiClient.get(
           '/api/shop_products'+"?filter="+query
         );
         if (response.status === 200) {
+          this.filterString=query
            this.products=response.data.data
-           console.log("product="+this.products)
         }
       } catch (e) {
         //

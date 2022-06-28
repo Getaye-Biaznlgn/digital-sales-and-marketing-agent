@@ -122,12 +122,6 @@
         <td>{{ order.order_status }}</td>
         <td>{{ order.payment_type }}</td>
         <td>
-          <!-- <span class="me-2" role="button"
-            ><i class="far fa-eye"></i
-          ></span> -->
-          <!-- <span @click="showDeleteModal(order)" role="button"
-            ><i class="fas fa-trash"></i
-          ></span> -->
           <div class="dropdown">
             <a
               class="dropdown-toggl text-dark"

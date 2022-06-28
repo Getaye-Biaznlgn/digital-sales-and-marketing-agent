@@ -232,8 +232,8 @@ export default {
 
     },
 
-    mounted(){
-     this.fetchProducts()
+    created(){
+     this.fetchProducts('all')
      this.fetchCategories()
 
     }

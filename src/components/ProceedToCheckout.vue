@@ -11,13 +11,14 @@
           <div class="position-relative w-5 my-2 me-2">
             <input
               type="text"
-              v-model="searchValue"
+              v-model="searchQuery"
+              @keyup.enter="fetchCustomers"
               class="form-control rounded-pill pe-5"
               placeholder="Search"
               aria-label="Recipient's username"
               aria-describedby="basic-add"
             />
-            <span role="button" class="position-absolute end-0 top-0 p-2 me-2"
+            <span @click="fetchCustomers" role="button" class="position-absolute end-0 top-0 p-2 me-2"
               ><i class="fas fa-search"></i
             ></span>
           </div>
@@ -46,6 +47,32 @@
               </td>
             </tr>
           </table>
+                <!-- pagination -->
+  <div class="d-flex justify-content-end m-2">
+    <div class="me-3">
+      <select
+        @change="fetchCustomers()"
+        v-model="perPage"
+        class="form-select"
+        aria-label="perPage"
+      >
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+    <paginate
+      v-model="pageNo"
+      :page-count="totalPage"
+      :click-handler="fetchByPageNo"
+      :prev-text="'Prev'"
+      :next-text="'Next'"
+      :container-class="'d-flex nav page-item'"
+    >
+    </paginate>
+  </div>
           <div class="mt-2">
             <div v-if="selectedCustomer">
               <div class="fw-bold">Selected Customer</div>
@@ -248,6 +275,7 @@
 </template>
 
 <script>
+import Paginate from "vuejs-paginate-next";
 import apiClient from "../resources/baseUrl";
 import useValidate from "@vuelidate/core";
 import {
@@ -259,11 +287,11 @@ import {
 } from "@vuelidate/validators";
 
 export default {
+  components:{
+      Paginate
+  },
   props: {
     cart: {
-      required: true,
-    },
-    customers: {
       required: true,
     },
     paymentMethods: {
@@ -277,13 +305,18 @@ export default {
       pickupDate: "",
       selectedCustomer: null,
       paymentMethodId: "",
-      //
+      searchQuery:"",
+      customers:[],
       isLoading: false,
       // alert
       isAlertVisible: false,
       alertMessage: "",
       isRequestSucceed: "",
       timeout: "",
+         //paginate
+      perPage: 10,
+      pageNo: 1,
+      totalPage: 0,
     };
   },
   computed: {
@@ -301,6 +334,22 @@ export default {
       this.isAlertVisible = true;
       this.alertMessage = message;
       this.isRequestSucceed = isRequestSucceed;
+    },
+      async fetchCustomers() {
+      try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.get(`/api/shop_users?search=${this.searchQuery}&&page=${this.pageNo}&&per_page=${this.perPage}`);
+        if (response.status === 200) {
+          this.customers = response.data.data;
+          this.perPage = response.data.meta.per_page;
+          this.pageNo = response.data.meta.current_page;
+          this.totalPage = response.data.meta.last_page;
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
     },
     async placeOrder(isNew) {
       this.isLoading = true;
@@ -333,6 +382,9 @@ export default {
     back() {
       this.$emit("navigateTo", "AddToCart");
     },
+  },
+  created(){
+    this.fetchCustomers()
   },
   beforeUnmount() {
     clearTimeout(this.timeout);

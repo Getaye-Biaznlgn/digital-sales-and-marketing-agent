@@ -13,7 +13,7 @@
               'border-bottom border-dark border-2': filterString == 'all',
             }"
             role="button"
-            @click="fetchOrders('all')"
+            @click="fetchByFilter('all')"
           >
             All orders
           </a>
@@ -25,7 +25,7 @@
             :class="{
               'border-bottom border-dark border-2': filterString == 'completed',
             }"
-            @click="fetchOrders('completed')"
+            @click="fetchByFilter('completed')"
           >
             Completed
           </a>
@@ -37,7 +37,7 @@
             :class="{
               'border-bottom border-dark border-2': filterString == 'pending',
             }"
-            @click="fetchOrders('pending')"
+            @click="fetchByFilter('pending')"
           >
             Pending
           </a>
@@ -50,7 +50,7 @@
             :class="{
               'border-bottom border-dark border-2': filterString == 'canceled',
             }"
-            @click="fetchOrders('canceled')"
+            @click="fetchByFilter('canceled')"
           >
             Canceled
           </a>
@@ -68,30 +68,20 @@
       <div class="position-relative w-50 me-2">
         <input
           type="text"
-          v-model="searchValue"
+          v-model="searchQuery"
+          @keyup.enter="searchOrders"
           class="form-control rounded-pill pe-5"
           placeholder="Search"
           aria-label="Recipient's username"
           aria-describedby="basic-add"
         />
-        <span role="button" class="position-absolute end-0 top-0 p-2 me-2"
+        <span @click="searchOrders" role="button" class="position-absolute end-0 top-0 p-2 me-2"
           ><i class="fas fa-search"></i
         ></span>
       </div>
-      <div class="d-flex">
-        <div class="pe-2">
-          <select class="form-select" aria-label="selectFilte">
-            <option value=" ">Sort</option>
-            <option>Sort</option>
-          </select>
+         <div>
+          <button @click="downloadCSV()" class="btn border">Export</button>
         </div>
-        <div>
-          <select class="form-select" aria-label="selectFilterRegion">
-            <option value=" ">Sort</option>
-            <option>Sort</option>
-          </select>
-        </div>
-      </div>
     </div>
     <!-- Table -->
     <table class="mt-2">
@@ -106,7 +96,7 @@
         <th><span class="sr-only">Action</span></th>
       </tr>
       <tr v-for="(order, index) in orders" :key="order.id">
-        <td>{{ index + 1 }}</td>
+        <td>{{ pageNo * perPage - perPage + index + 1  }}</td>
         <td>{{ order.order_ref }}</td>
         <td>{{ order.first_name + " " + order.last_name }}</td>
         <td>
@@ -156,9 +146,10 @@
         </td>
       </tr>
     </table>
+    <div v-if="!orders.length" class="text-center">No record</div>
   </div>
   <!-- pagination -->
-  <div class="d-flex justify-content-end mb-3 me-2">
+  <div v-if="!isSearch" class="d-flex justify-content-end mb-3 me-2">
     <div class="me-3">
       <select
         @change="handlePerPage()"
@@ -166,7 +157,7 @@
         class="form-select"
         aria-label="perPage"
       >
-        <option value="5">5</option>
+        <option value="1">5</option>
         <option value="10" selected>10</option>
         <option value="25">25</option>
         <option value="50">50</option>
@@ -174,6 +165,7 @@
       </select>
     </div>
     <paginate
+      v-model="pageNo"
       :page-count="totalPage"
       :click-handler="fetchByPageNo"
       :prev-text="'Prev'"
@@ -295,6 +287,7 @@
 import apiClient from "../resources/baseUrl";
 import Paginate from "vuejs-paginate-next";
 import useValidate from "@vuelidate/core";
+import exportFromJSON from 'export-from-json'
 import { required, helpers } from "@vuelidate/validators";
 export default {
   components: {
@@ -308,7 +301,7 @@ export default {
       // orderForDelete: {},
       orderForChangeStatus: {},
       alertMessage: "",
-    
+      searchQuery:'',
       isLoading: false,
       orders: [],
       order: {
@@ -322,13 +315,20 @@ export default {
       //chage the action which should be performed
       forUpdate: false,
       filterString:'all',
+      isSearch:false,
       //paginate
       perPage: 10,
       pageNo: 1,
-      totalPage: "",
+      totalPage: 0,
     };
   },
   methods: {
+       downloadCSV(){
+        const data = this.orders;
+      const fileName = "orders";
+      const exportType = exportFromJSON.types.csv;
+      if (data) exportFromJSON({ data, fileName, exportType });
+    },
     dismissAlert() {
       this.timeout = setTimeout(() => {
         this.isAlertVisible = false;
@@ -457,6 +457,31 @@ export default {
     //     this.closeDeleteModal();
     //   }
     // },
+    async searchOrders() {
+      if (this.searchQuery == "") {
+        this.fetchOrders("all");
+        return;
+      }
+      try {
+        this.$store.commit("setIsLoading", true);
+        const response = await apiClient.post(
+          `/api/search_shop_order?search=${this.searchQuery}`
+        );
+        if (response.status === 200) {
+          this.orders = response.data.data;
+          this.filterString = "";
+          this.isSearch = true;
+        }
+      } catch (e) {
+        //
+      } finally {
+        this.$store.commit("setIsLoading", false);
+      }
+    },
+    fetchByFilter(filter){
+      this.pageNo=1
+     this.fetchOrders(filter)
+    },
     async fetchOrders(filterQuery) {
       try {
         this.$store.commit("setIsLoading", true);
@@ -467,6 +492,7 @@ export default {
           this.pageNo = response.data.meta.current_page;
           this.totalPage = response.data.meta.last_page;
           this.filterString=filterQuery
+          this.isSearch=false
         }
       } catch (e) {
         //

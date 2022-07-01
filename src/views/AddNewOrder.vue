@@ -2,9 +2,7 @@
   <DetailPage title="Add New Order">
     <keep-alive>
        <component
-      :products="products"
       :cart="cart"
-      :customers="customers"
       :paymentMethods="paymentMethods"
       @checkout="checkout"
       @navigateTo="setSelectedComponent"
@@ -26,11 +24,9 @@ export default {
   },
   data() {
     return {
-      products: [],
       selectedComponent: "AddToCart",
       paymentMethods:[],
       cart: [],
-      customers:[]
 
     };
   },
@@ -42,19 +38,7 @@ export default {
       this.cart = cart;
       this.selectedComponent = "Checkout";
     },
-    async fetchCustomers() {
-      try {
-        this.$store.commit("setIsLoading", true);
-        const response = await apiClient.get(`/api/users`);
-        if (response.status === 200) {
-          this.customers = response.data.data;
-        }
-      } catch (e) {
-        //
-      } finally {
-        this.$store.commit("setIsLoading", false);
-      }
-    },
+  
      async fetchPaymentMethods() {
       try {
         this.$store.commit("setIsLoading", true);
@@ -68,26 +52,9 @@ export default {
         this.$store.commit("setIsLoading", false);
       }
     },
-    async fetchProducts(query) {
-      try {
-        this.$store.commit("setIsLoading", true);
-        const response = await apiClient.get(
-          "/api/products" + "?filter=" + query
-        );
-        if (response.status === 200) {
-          this.products = response.data.data;
-          console.log("product=" + this.products);
-        }
-      } catch (e) {
-        //
-      } finally {
-        this.$store.commit("setIsLoading", false);
-      }
-    },
+ 
   },
   created() {
-    this.fetchProducts("active");
-    this.fetchCustomers();
     this.fetchPaymentMethods();
   },
 };

@@ -13,33 +13,26 @@
     </button>
     <hr />
     <div class="d-flex p-2 justify-content-between selection-bar">
-    <div class="position-relative w-50  me-2">
+      <div class="position-relative w-50 me-2">
         <input
           type="text"
-          v-model="searchValue"
+          v-model="searchQuery"
+          @keyup.enter="searchCustomers"
           class="form-control rounded-pill pe-5"
           placeholder="Search by name"
           aria-label="Recipient's username"
           aria-describedby="basic-add"
         />
-        <span role="button" class="position-absolute  end-0 top-0 p-2 me-2"
+        <span
+          @click="searchCustomers"
+          role="button"
+          class="position-absolute end-0 top-0 p-2 me-2"
           ><i class="fas fa-search"></i
         ></span>
       </div>
 
-      <div class="d-flex">
-        <div class="pe-2">
-          <select class="form-select" aria-label="selectFilte">
-            <option value=" ">Sort</option>
-            <option>Sort</option>
-          </select>
-        </div>
-        <div>
-          <select class="form-select" aria-label="selectFilteruser_region">
-            <option value=" ">Sort</option>
-            <option>Sort</option>
-          </select>
-        </div>
+      <div>
+        <button @click="downloadCSV()" class="btn border">Export</button>
       </div>
     </div>
     <!-- Table -->
@@ -54,16 +47,24 @@
         <th><span class="sr-only">Action</span></th>
       </tr>
       <tr v-for="(customer, index) in customers" :key="customer.id">
-        <td>{{ index + 1 }}</td>
+        <td>{{ pageNo * perPage - perPage + index + 1 }}</td>
         <td class="text-capitalize">
           {{ customer.first_name + " " + customer.last_name }}
         </td>
         <td>{{ customer.phone_number }}</td>
-        <td >
-          <span v-if="customer.joined_date">{{ (new Date(customer.joined_date)).toString().split(' ').slice(0,4).join(' ')  }}</span
+        <td>
+          <span v-if="customer.joined_date">{{
+            new Date(customer.joined_date)
+              .toString()
+              .split(" ")
+              .slice(0, 4)
+              .join(" ")
+          }}</span
           ><span v-else>--/--</span>
         </td>
-        <td>{{ customer.user_region??''}}-{{customer.user_woreda?? ''}}</td>
+        <td>
+          {{ customer.user_region ?? "" }}-{{ customer.user_woreda ?? "" }}
+        </td>
         <td>
           <span class="me-2" @click="showEditModal(customer)" role="button"
             ><i class="far fa-eye"></i
@@ -74,13 +75,39 @@
         </td>
       </tr>
     </table>
+    <!-- pagination -->
+    <div class="d-flex justify-content-end mb-3 me-2">
+      <div class="me-3">
+        <select
+          @change="fetchCustomers()"
+          v-model="perPage"
+          class="form-select"
+          aria-label="perPage"
+        >
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <paginate
+        v-model="pageNo"
+        :page-count="totalPage"
+        :click-handler="fetchByPageNo"
+        :prev-text="'Prev'"
+        :next-text="'Next'"
+        :container-class="'d-flex nav page-item'"
+      >
+      </paginate>
+    </div>
   </div>
   <!-- add customers -->
   <base-modal
     :modalState="isAddModalVisible"
     title="Customer"
     @close="closeAddModal"
-    :btnLabel="forUpdate? 'OK': 'Save'"
+    :btnLabel="forUpdate ? 'OK' : 'Save'"
     :isLoading="isLoading"
     @submit="addNewCustomer"
   >
@@ -92,7 +119,7 @@
         >
           <label for="firstName" class="form-label">First Name</label>
           <input
-           :disabled="forUpdate"
+            :disabled="forUpdate"
             type="text"
             class="form-control"
             id="firstName"
@@ -133,7 +160,7 @@
       <div class="mb-1" :class="{ warining: v$.customer.phone_number.$error }">
         <label for="phone_number" class="form-label">Phone Number</label>
         <input
-         :disabled="forUpdate"
+          :disabled="forUpdate"
           type="text"
           class="form-control"
           id="phone_number"
@@ -182,7 +209,7 @@
       <div class="mb-1">
         <label for="user_zone" class="form-label">Zone</label>
         <input
-        :disabled="forUpdate"
+          :disabled="forUpdate"
           type="text"
           class="form-control"
           id="user_zone"
@@ -194,7 +221,7 @@
       <div class="mb-1">
         <label for="user_woreda" class="form-label">Woreda</label>
         <input
-         :disabled="forUpdate"
+          :disabled="forUpdate"
           type="text"
           class="form-control"
           id="user_woreda"
@@ -228,6 +255,8 @@
 </template>
 
 <script>
+import Paginate from "vuejs-paginate-next";
+import exportFromJSON from "export-from-json";
 import apiClient from "../resources/baseUrl";
 import useValidate from "@vuelidate/core";
 import {
@@ -238,13 +267,16 @@ import {
   numeric,
 } from "@vuelidate/validators";
 export default {
+  components: {
+    Paginate,
+  },
   data() {
     return {
       v$: useValidate(),
       isAddModalVisible: false,
-    //   isDeleteModalVisible: false,
+      //   isDeleteModalVisible: false,
       customerForDelete: {},
-
+      searchQuery: "",
       isLoading: false,
       customers: [],
       customer: {
@@ -261,20 +293,31 @@ export default {
       alertMessage: "",
       isRequestSucceed: "",
       timeout: "",
+
       //
       // to use add modal as edit depend on the condition and #forUpdate to
       //chage the action which should be performed
       forUpdate: false,
+      //paginate
+      perPage: 10,
+      pageNo: 1,
+      totalPage: 0,
     };
   },
   methods: {
+    downloadCSV() {
+      const data = this.customers;
+      const fileName = "customers";
+      const exportType = exportFromJSON.types.csv;
+      if (data) exportFromJSON({ data, fileName, exportType });
+    },
     dismissAlert() {
       this.timeout = setTimeout(() => {
         this.isAlertVisible = false;
       }, 2000);
     },
     resetFieldEmpity() {
-      this.customer={
+      this.customer = {
         first_name: "",
         last_name: "",
         phone_number: "",
@@ -282,7 +325,7 @@ export default {
         user_region: "",
         user_zone: "",
         user_woreda: "",
-      }
+      };
     },
     // showDeleteModal({ ...customer }) {
     //   this.customerForDelete = customer;
@@ -340,7 +383,7 @@ export default {
     async addNewCustomer() {
       if (this.forUpdate) {
         // this.updateCustomer();
-        this.closeAddModal()
+        this.closeAddModal();
         // return;
       }
       this.v$.$validate();
@@ -382,12 +425,27 @@ export default {
     //     this.closeDeleteModal();
     //   }
     // },
+    async searchCustomers() {
+      this.pageNo = 1;
+      this.fetchCustomers();
+    },
+    //paginations
+    fetchByPageNo(no) {
+      this.pageNo = no;
+      this.fetchCustomers();
+    },
+
     async fetchCustomers() {
       try {
         this.$store.commit("setIsLoading", true);
-        const response = await apiClient.get(`/api/users`);
+        const response = await apiClient.get(
+          `/api/shop_users?search=${this.searchQuery}&&page=${this.pageNo}&&per_page=${this.perPage}`
+        );
         if (response.status === 200) {
           this.customers = response.data.data;
+          this.perPage = response.data.meta.per_page;
+          this.pageNo = response.data.meta.current_page;
+          this.totalPage = response.data.meta.last_page;
         }
       } catch (e) {
         //

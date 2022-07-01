@@ -17,7 +17,7 @@ const routes = [
         component: TheDashboard
       },
       {
-        path: '/myshop',
+        path: '/my-shop',
         name: "MyShop",
         component: () => import('../views/TheMyShop.vue')
       },

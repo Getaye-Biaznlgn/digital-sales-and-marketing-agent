@@ -1,16 +1,27 @@
 <template>
   <div class="p-3">
-    <div class="fw-bold fs-5">Product Details</div>
+    <div class="fw-bold fs-5">Products for approval</div>
     <div>
       In This section, you will review and accept or reject all products sent to
       your shop.
     </div>
     <!-- <button @click="accept" class="btn btn-bg-primary d-block ms-auto">Accept All Products</button> -->
-    <BaseButton
-      title="Accept All Product"
+    <!-- <BaseButton
+     
+      title="Accept All Products"
       :isLoading="isLoading"
-      @click="acceptSentProduct"
-    />
+      
+    /> -->
+    <button @click="acceptSentProduct" :disabled="!queueProducts.length" class="btn btn-bg-primary text-light d-block ms-auto">
+       <span v-if="isLoading">
+        <span
+          class="spinner-border spinner-border-sm mx-2"
+          role="status"
+          aria-hidden="true"
+        ></span>
+      </span>
+      Accept All Products
+    </button>
     <!-- Table -->
     <table class="mt-2">
       <tr>
@@ -30,6 +41,7 @@
         </td>
       </tr>
     </table>
+    <div v-if="!queueProducts.length" class="text-center">No product for approval</div>
   </div>
 
   <the-alert
@@ -80,9 +92,10 @@ export default {
           );
         }
       } catch (e) {
-        this.setAlertData(false, "Faild to accept send products");
+        this.setAlertData(false, "Faild to accept sent products");
       } finally {
         this.isLoading = false;
+        this.dismissAlert()
       }
     },
     async fetchQueueProducts() {

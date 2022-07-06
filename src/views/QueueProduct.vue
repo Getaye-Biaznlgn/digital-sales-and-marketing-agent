@@ -10,7 +10,6 @@
      
       title="Accept All Products"
       :isLoading="isLoading"
-      
     /> -->
     <button @click="acceptSentProduct" :disabled="!queueProducts.length" class="btn btn-bg-primary text-light d-block ms-auto">
        <span v-if="isLoading">
@@ -85,7 +84,7 @@ export default {
           products:[...this.queueProducts]
         });
         if (response.status === 200) {
-          // this.queueProducts = response.data.data;
+          this.queueProducts=[]
           this.setAlertData(
             true,
             "You have accepted sent products successfully!"

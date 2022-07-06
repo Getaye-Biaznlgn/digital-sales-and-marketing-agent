@@ -47,7 +47,7 @@ const  logout=async function() {
           store.commit("setIsAuthenticated", false);
 
           localStorage.removeItem("tokenR");
-          localStorage.removeItem("user");
+          localStorage.removeItem("userR");
           router.push({ name: "TheLogin" });
         } else {
           alert('False')

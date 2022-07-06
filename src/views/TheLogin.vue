@@ -201,7 +201,7 @@ export default {
         this.isLoading = true;
         try {
           var response = await apiClient.post(
-            "/api/login",
+            "/api/agent_login",
             this.userCrediantail
           );
           if (response.status === 200) {
@@ -215,7 +215,7 @@ export default {
             let user = response.data.user;
 
             localStorage.setItem("tokenR", response.data.access_token);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("userR", JSON.stringify(user));
 
             let toPath = this.$router.to || "/";
             this.$router.push(toPath);

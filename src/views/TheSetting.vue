@@ -12,7 +12,8 @@
       </tr>
       <tr>
         <th>Phone Number</th>
-        <td>{{ user.phone_no }}</td>
+        <td>{{user.phone_numbers?.[0]?.phone_number+', '+user.phone_numbers?.[1]?.phone_number}}
+        </td>
       </tr>
       <tr>
         <th>Region</th>
@@ -24,14 +25,14 @@
       </tr>
       <tr>
         <th>Woreda</th>
-        <td>{{ user.manager_woreda }}</td>
+        <td class="text-capitalize">{{ user.manager_woreda }}</td>
       </tr>
       <tr>
         <th>City</th>
-        <td>{{ user.manager_city }}</td>
+        <td class="text-capitalize">{{ user.manager_city }}</td>
       </tr>
     </table>
-
+ 
     <BaseButton @submit="showChangePasswordModal" title="Change Password" />
   </div>
 
@@ -183,6 +184,7 @@ export default {
       this.isRequestSucceed = isRequestSucceed;
     },
   },
+
   beforeUnmount() {
     clearTimeout(this.timeout);
   },

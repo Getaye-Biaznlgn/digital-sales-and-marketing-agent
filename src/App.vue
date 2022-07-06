@@ -11,8 +11,8 @@ export default {
       this.$store.commit("setIsAuthenticated", true);
       apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-    if (localStorage.getItem("user")) {
-      let user = localStorage.getItem("user");
+    if (localStorage.getItem("userR")) {
+      let user = localStorage.getItem("userR");
       console.log("user", user);
       this.$store.commit("setUser", JSON.parse(user));
     }

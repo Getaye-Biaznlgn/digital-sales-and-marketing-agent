@@ -178,7 +178,7 @@ const fetchOrders = async function () {
 const fetchMarketStatistics = async function () {
   try {
     store.commit("setIsLoading", true);
-    const response = await apiClient.get(`/api/dashboard`);
+    const response = await apiClient.get(`/api/shop_dashboard`);
     if (response.status === 200) {
       marketStatistics.value = response.data;
     }

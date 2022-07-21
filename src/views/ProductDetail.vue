@@ -83,7 +83,7 @@ export default {
       try {
         this.$store.commit("setIsLoading", true);
         const response = await apiClient.get(
-          `/api//shop_product_detail/${this.$route.params.id}`
+          `/api/shop_product_detail/${this.$route.params.id}`
         );
         if (response.status === 200) {
           this.product = response.data.data;

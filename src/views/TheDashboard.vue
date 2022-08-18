@@ -7,11 +7,11 @@
             <div class="py-2 icon text-center">
               <i class="fas fa-layer-group fs-5 mt-1"></i>
             </div>
-            <div class="flex-fill py-2 ms-1">Total Product</div>
+            <div class="flex-fill py-2 ms-1">Total Sales</div>
             <div class="text-center" style="color: #82bc3e">
               <span><i class="fa fa-chart-line"></i></span>
               <strong class="d-block">{{
-                marketStatistics.total_customer
+                marketStatistics.total_sales
               }}</strong>
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="py-2 icon text-center">
               <i class="fas fa-user-friends fs-5 align-middle"></i>
             </div>
-            <div class="flex-fill py-2 ms-1">Total Customer</div>
+            <div class="flex-fill py-2 ms-1">Total Product</div>
             <div class="text-center" style="color: #82bc3e">
               <span class="d-block"><i class="fa fa-chart-line"></i></span>
               <strong class="d-block">{{
